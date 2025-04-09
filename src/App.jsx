@@ -1,11 +1,21 @@
-import Form from "./components/Form";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Home from "./components/Home";
+import FieldBuilder from "./components/FieldBuilder";
+import FormFiller from "./components/FormFiller";
 
 function App() {
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Hiava Proto</h1>
-      <Form />
-    </div>
+    <Router>
+      <Routes>
+        {/* Kotisivun reitti */}
+        <Route path="/" element={<Home />} />
+
+        {/* Kenttien rakentamisen reitti */}
+        <Route path="/build-form" element={<FieldBuilder />} />
+
+        <Route path="/fill-form" element={<FormFiller />} />
+      </Routes>
+    </Router>
   );
 }
 
