@@ -1,83 +1,90 @@
+// FormFiller.jsx
 import { useState, useEffect } from "react";
+import { Form, Button, Card } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 export default function FormFiller() {
-  const [fields, setFields] = useState([]);
-  const [formValues, setFormValues] = useState({});
+  const [savedForms, setSavedForms] = useState([]);
+  const [selectedForm, setSelectedForm] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [formName, setFormName] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const storedFields = JSON.parse(localStorage.getItem("formFields"));
-    if (storedFields) {
-      setFields(storedFields);
-      const initialValues = storedFields.reduce((acc, field) => {
-        acc[field.name] = "";
-        return acc;
-      }, {});
-      setFormValues(initialValues);
-    }
+    const forms = JSON.parse(localStorage.getItem("savedForms")) || [];
+    setSavedForms(forms);
   }, []);
 
-  const handleChange = (e, fieldName) => {
-    setFormValues({ ...formValues, [fieldName]: e.target.value });
+  const handleFormSelect = (e) => {
+    const selected = savedForms.find(form => form.name === e.target.value);
+    setSelectedForm(selected);
+    setFormName(selected.name); // Päivitetään lomakkeen nimi
+    setFormData({});
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(formValues); // Lomakkeen arvot
+  const handleChange = (fieldName, value) => {
+    setFormData({ ...formData, [fieldName]: value });
   };
 
-  const renderFieldInput = (field) => {
-    switch (field.type) {
-      case "string":
-        return (
-          <input
-            type="text"
-            value={formValues[field.name] || ""}
-            onChange={(e) => handleChange(e, field.name)}
-            className="border rounded p-2 flex-1"
-            placeholder={`Syötä ${field.name}`}
-          />
-        );
-      case "number":
-        return (
-          <input
-            type="number"
-            value={formValues[field.name] || ""}
-            onChange={(e) => handleChange(e, field.name)}
-            className="border rounded p-2 flex-1"
-            placeholder={`Syötä ${field.name}`}
-          />
-        );
-      case "boolean":
-        return (
-          <input
-            type="checkbox"
-            checked={formValues[field.name] || false}
-            onChange={(e) => handleChange(e, field.name)}
-            className="border rounded p-2"
-          />
-        );
-      default:
-        return null;
-    }
+  const handleSubmit = () => {
+    // Ohjataan käyttäjä ConfirmSubmission-sivulle, ja välitetään tiedot mukana
+    navigate("/confirm", { state: { formData, formName } });
   };
 
   return (
-    <div className="p-4 max-w-xl mx-auto space-y-4">
-      <h2 className="text-xl font-bold">Täytä lomake</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {fields.map((field, idx) => (
-          <div key={idx} className="flex items-center gap-4">
-            <label className="flex-1">{field.name}</label>
-            {renderFieldInput(field)}
-          </div>
-        ))}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 mt-4"
-        >
-          Lähetä
-        </button>
-      </form>
+    <div className="container mt-5">
+      <Card>
+        <Card.Body>
+          <h3 className="mb-3">Täytä lomake</h3>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Valitse tallennettu lomake</Form.Label>
+            <Form.Select onChange={handleFormSelect} defaultValue="">
+              <option value="" disabled>
+                Valitse lomake
+              </option>
+              {savedForms.map((form, index) => (
+                <option key={index} value={form.name}>
+                  {form.name}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          {selectedForm && (
+            <Form onSubmit={(e) => e.preventDefault()}>
+              {selectedForm.fields.map((field, index) => (
+                <Form.Group className="mb-3" key={index}>
+                  <Form.Label>{field.name}</Form.Label>
+
+                  {/* Muutetaan Boolean kenttä DropDown-valikoksi */}
+                  {field.type === "boolean" ? (
+                    <Form.Select
+                      value={formData[field.name] !== undefined ? formData[field.name] : ""}
+                      onChange={(e) => handleChange(field.name, e.target.value === "true")}
+                    >
+                      <option value="" disabled>Valitse</option>
+                      <option value="true">Kyllä</option>
+                      <option value="false">Ei</option>
+                    </Form.Select>
+                  ) : (
+                    <Form.Control
+                      type={field.type}
+                      value={formData[field.name] || ""}
+                      onChange={(e) =>
+                        handleChange(field.name, e.target.value)
+                      }
+                    />
+                  )}
+                </Form.Group>
+              ))}
+              <Button onClick={handleSubmit} type="submit">
+                Lähetä
+              </Button>
+            </Form>
+          )}
+        </Card.Body>
+      </Card>
     </div>
   );
 }

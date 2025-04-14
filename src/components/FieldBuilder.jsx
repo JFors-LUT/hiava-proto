@@ -1,105 +1,109 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Muutettu useHistory -> useNavigate
+import { Form, Button, Card, Table } from "react-bootstrap";
 
 export default function FieldBuilder() {
+  const [formName, setFormName] = useState("");
+  const [fieldName, setFieldName] = useState("");
+  const [fieldType, setFieldType] = useState("text");
   const [fields, setFields] = useState([]);
-  const [newField, setNewField] = useState({ name: "", type: "string" });
-  const [formValues, setFormValues] = useState({});
 
-  const navigate = useNavigate(); // Käytetään siirtymistä toiseen näkymään
-
-  // Lisää kenttä
-  const addField = () => {
-    if (!newField.name) return;
-
-    // Tarkistetaan, että kentän nimi ei ole jo olemassa
-    if (fields.some((field) => field.name === newField.name)) {
-      alert("Kenttä nimeltä '" + newField.name + "' on jo olemassa.");
-      return;
-    }
-
-    setFields([...fields, newField]);
-    setFormValues({ ...formValues, [newField.name]: "" });
-    setNewField({ name: "", type: "string" });
+  const handleAddField = () => {
+    if (!fieldName.trim()) return;
+    setFields([...fields, { name: fieldName, type: fieldType }]);
+    setFieldName("");
+    setFieldType("text");
   };
 
-  // Poista kenttä
-  const removeField = (fieldName) => {
-    setFields(fields.filter((field) => field.name !== fieldName));
-    const newFormValues = { ...formValues };
-    delete newFormValues[fieldName];
-    setFormValues(newFormValues);
+  const handleRemoveField = (index) => {
+    setFields(fields.filter((_, i) => i !== index));
   };
 
-  // Luo lomake ja siirry lomakkeen täyttämisnäkymään
-  const createForm = () => {
-    // Tallennetaan kentät ja siirretään lomakkeen täyttämisnäkymään
-    localStorage.setItem("formFields", JSON.stringify(fields));
-    navigate("/fill-form"); // Käytetään navigate() siirtymiseen
-  };
+  const handleSaveForm = () => {
+    if (!formName.trim() || fields.length === 0) return;
 
-  // Kenttämuutokset
-  const handleFieldChange = (e, fieldName) => {
-    setFormValues({ ...formValues, [fieldName]: e.target.value });
+    const savedForms = JSON.parse(localStorage.getItem("savedForms")) || [];
+    const newForm = { name: formName, fields };
+
+    localStorage.setItem("savedForms", JSON.stringify([...savedForms, newForm]));
+    setFormName("");
+    setFields([]);
+    alert("Lomake tallennettu!");
   };
 
   return (
-    <div className="p-4 max-w-xl mx-auto space-y-4">
-      <h2 className="text-xl font-bold">Lisää kenttä</h2>
+    <div className="container mt-5">
+      <Card>
+        <Card.Body>
+          <h3 className="mb-4">Lomakekenttien rakentaja</h3>
 
-      <div className="flex gap-4 items-center">
-        <input
-          type="text"
-          placeholder="Kentän nimi"
-          value={newField.name}
-          onChange={(e) => setNewField({ ...newField, name: e.target.value })}
-          className="border rounded p-2 flex-1"
-        />
-        <select
-          value={newField.type}
-          onChange={(e) => setNewField({ ...newField, type: e.target.value })}
-          className="border rounded p-2"
-        >
-          <option value="string">String</option>
-          <option value="number">Number</option>
-          <option value="boolean">Boolean</option>
-        </select>
-        <button
-          onClick={addField}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Lisää
-        </button>
-      </div>
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="text"
+              placeholder="Lomakkeen nimi"
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+            />
+          </Form.Group>
 
-      <div>
-        <h3 className="font-semibold mt-4">Kentät</h3>
-        {fields.length === 0 && <p>Ei kenttiä lisätty.</p>}
-        <ul className="list-disc pl-5 space-y-1">
-          {fields.map((field, idx) => (
-            <li key={idx} className="flex items-center justify-between">
-              <span>
-                <strong>{field.name}</strong> ({field.type})
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => removeField(field.name)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Poista
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+          <Form className="d-flex gap-3 flex-wrap">
+            <Form.Control
+              type="text"
+              placeholder="Kentän nimi"
+              value={fieldName}
+              onChange={(e) => setFieldName(e.target.value)}
+            />
+            <Form.Select
+              value={fieldType}
+              onChange={(e) => setFieldType(e.target.value)}
+            >
+              <option value="text">Teksti</option>
+              <option value="number">Numero</option>
+              <option value="boolean">Totuusarvo</option>
+            </Form.Select>
+            <Button onClick={handleAddField}>Lisää kenttä</Button>
+          </Form>
 
-      <button
-        onClick={createForm}
-        className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 mt-4"
-      >
-        Luo lomake
-      </button>
+          {fields.length > 0 && (
+            <Button className="mt-3" variant="success" onClick={handleSaveForm}>
+              Tallenna lomake
+            </Button>
+          )}
+        </Card.Body>
+      </Card>
+
+      {fields.length > 0 && (
+        <Card className="mt-4">
+          <Card.Body>
+            <h5>Lisätyt kentät</h5>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>Nimi</th>
+                  <th>Tyyppi</th>
+                  <th>Toiminnot</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fields.map((field, index) => (
+                  <tr key={index}>
+                    <td>{field.name}</td>
+                    <td>{field.type}</td>
+                    <td>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleRemoveField(index)}
+                      >
+                        Poista
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Card.Body>
+        </Card>
+      )}
     </div>
   );
 }
