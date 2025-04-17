@@ -21,6 +21,28 @@ const users = [
     { username: 'expert', password: 'expert123', role: 'expert' }
   ];
 
+  // Simuloitu tietokanta tai mock-tiedot
+const mockForms = [
+  {
+    id: 1,
+    name: "Asiakaspalaute",
+    fields: [
+      { label: "Nimi", type: "string" },
+      { label: "Palaute", type: "string" }
+    ]
+  },
+  {
+    id: 2,
+    name: "Kysely",
+    fields: [
+      { label: "Nimi", type: "string" },
+      { label: "Tunnit", type: "number"},
+      { label: "Testaaja", type: "boolean"}
+    ]
+  }
+];
+
+
 
 ////REITIT //////////
 // Kirjautumisreitti (esimerkki)
@@ -39,7 +61,11 @@ app.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
   });
-
+/*
+  app.get('/me', authenticateToken, (req, res) => {
+    res.json({ username: req.user.username, role: req.user.role });
+  });
+*/
   app.post('/verify-token', (req, res) => {
     const token = req.headers.authorization?.split(' ')[1]; // Haetaan token "Bearer <token>"
     if (!token) {
@@ -68,33 +94,32 @@ app.get('/protected', (req, res) => {
       if (err) {
         return res.status(403).json({ error: 'Token is invalid or expired' });
       }
-      return res.json({ message: 'Protected data', user });
+  
+      // Token on validi -> palautetaan käyttäjän tiedot
+      return res.json({ user });
     });
   });
 
-  // Mock-lomakkeet
+// API-reitti, joka palauttaa vain haetun lomakkeen nimen perusteella
 app.get('/forms', (req, res) => {
-    const mockForms = [
-      {
-        id: 1,
-        name: "Asiakaspalaute",
-        fields: [
-          { label: "Nimi", type: "text" },
-          { label: "Palaute", type: "textarea" }
-        ]
-      },
-      {
-        id: 2,
-        name: "Kysely",
-        fields: [
-          { label: "Ikä", type: "number" },
-          { label: "Sukupuoli", type: "select", options: ["Mies", "Nainen", "Muu"] }
-        ]
-      }
-    ];
   
-    res.json(mockForms);
-  });
+
+  const { formName } = req.query;  // Haetaan query-parametri 'formName'
+  console.log(`lomaketta ${formName} haetaan...`);
+  if (!formName) {
+    return res.status(400).json({ error: 'Lomakkeen nimi puuttuu' });  // Virhe, jos formName ei ole mukana
+  }
+
+  // Etsitään lomake mockForms-taulukosta formName:n perusteella
+  const form = mockForms.find((f) => f.name === formName);
+
+  if (!form) {
+    return res.status(404).json({ error: 'Lomaketta ei löytynyt' });  // Virhe, jos lomaketta ei löydy
+  }
+
+  // Palautetaan löytynyt lomake
+  res.json(form);
+});
 
   app.post('/forms', (req, res) => {
     console.log("Tallennettu lomake:", req.body);

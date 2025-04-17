@@ -1,34 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, Button, Card, Table } from "react-bootstrap";
+import AccessDeniedMessage from "@/components/common/AccessDenied";
+import  useRequireRole from "@/hooks/useRequireRole";
+import { addField, removeField, saveForm } from "./formBuilderHelper";
 
 export default function FieldBuilder() {
   const [formName, setFormName] = useState("");
   const [fieldName, setFieldName] = useState("");
   const [fieldType, setFieldType] = useState("text");
   const [fields, setFields] = useState([]);
+  const { loading, accessDenied } = useRequireRole("expert");
+  
 
-  const handleAddField = () => {
-    if (!fieldName.trim()) return;
-    setFields([...fields, { name: fieldName, type: fieldType }]);
-    setFieldName("");
-    setFieldType("text");
-  };
-
-  const handleRemoveField = (index) => {
-    setFields(fields.filter((_, i) => i !== index));
-  };
-
-  const handleSaveForm = () => {
-    if (!formName.trim() || fields.length === 0) return;
-
-    const savedForms = JSON.parse(localStorage.getItem("savedForms")) || [];
-    const newForm = { name: formName, fields };
-
-    localStorage.setItem("savedForms", JSON.stringify([...savedForms, newForm]));
-    setFormName("");
-    setFields([]);
-    alert("Lomake tallennettu!");
-  };
+  if (loading) return <p>Ladataan...</p>;
+  if (accessDenied) return <AccessDeniedMessage />;
 
   return (
     <div className="container mt-5">
@@ -60,11 +45,13 @@ export default function FieldBuilder() {
               <option value="number">Numero</option>
               <option value="boolean">Totuusarvo</option>
             </Form.Select>
-            <Button onClick={handleAddField}>Lisää kenttä</Button>
+            <Button onClick={() => addField(fieldName, fieldType, setFields, fields, setFieldName, setFieldType)}>
+              Lisää kenttä
+            </Button>
           </Form>
 
           {fields.length > 0 && (
-            <Button className="mt-3" variant="success" onClick={handleSaveForm}>
+            <Button className="mt-3" variant="success" onClick={() => saveForm(formName, fields, setFormName, setFields)}>
               Tallenna lomake
             </Button>
           )}
@@ -92,7 +79,7 @@ export default function FieldBuilder() {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleRemoveField(index)}
+                        onClick={() => removeField(index, setFields, fields)}
                       >
                         Poista
                       </Button>

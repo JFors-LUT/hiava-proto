@@ -1,21 +1,29 @@
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+
+import LogoutButton from "./components/LogoutButton";
+
 import Home from "./components/Home";
-import FieldBuilder from "./components/FieldBuilder";
-import FormFiller from "./components/FormFiller";
+import FieldBuilder from "./components/FormBuilder/FormBuilder";
+import FormFiller from "./components/FormFiller/FormFiller";
 import ConfirmSubmission from "./components/ConfirmSubmission";
 
 // Käytetään Bootstrapin tyylejä
 function App() {
-  return (
+  return ( 
     <Router>
       <div>
-        {/* Kiinteä navigointipalkki */}
+        {/* navigointipalkki */}
         <nav className="navbar navbar-light bg-light fixed-top">
-          <div className="container d-flex justify-content-between align-items-center">
-            {/* Vasemmalla oleva logo */}
-            <Link className="navbar-brand" to="/">My App</Link>
-            
-
+          <div className="container-fluid d-flex justify-content-between align-items-center">
+            {/* Hiava logo */}
+            <Link className="navbar-brand" to="/">
+              <img
+                src="src\assets\images\logo_black.png"
+                alt="Hiava Logo"
+                height="30"
+                style={{ objectFit: "contain" }}
+              />
+            </Link>
             {/* Linkit oikealla puolella ja samalla rivillä */}
             <ul className="navbar-nav flex-row gap-3 m-0">
               <li className="nav-item">
@@ -26,6 +34,9 @@ function App() {
               </li>
               <li className="nav-item">
                 <Link className="nav-link" to="/fill-form">Täytä Lomake</Link>
+              </li>
+              <li className="nav-item">
+                <LogoutButton />
               </li>
             </ul>
           </div>
