@@ -6,12 +6,8 @@ const LogoutButton = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Tyhjennetään autentikointitiedot localStoragesta
-    localStorage.removeItem('authToken');
-    
-    // Voimme myös tyhjentää mahdolliset käyttäjän rooliin liittyvät tiedot
-    localStorage.removeItem('userRole');
-
+    // Tyhjennetään localStorage
+    localStorage.clear();
     // Ohjataan käyttäjä takaisin kirjautumissivulle
     navigate('/');
   };

@@ -39,6 +39,15 @@ const mockForms = [
       { label: "Tunnit", type: "number"},
       { label: "Testaaja", type: "boolean"}
     ]
+  },
+  {
+    id: 3,
+    name: "Test form 3",
+    fields: [
+      { label: "ID", type: "number" },
+      { label: "Text", type: "string" },
+      { label: "Test", type: "boolean" }
+    ]
   }
 ];
 
@@ -65,7 +74,7 @@ app.post('/login', (req, res) => {
   app.get('/me', authenticateToken, (req, res) => {
     res.json({ username: req.user.username, role: req.user.role });
   });
-*/
+
   app.post('/verify-token', (req, res) => {
     const token = req.headers.authorization?.split(' ')[1]; // Haetaan token "Bearer <token>"
     if (!token) {
@@ -81,6 +90,7 @@ app.post('/login', (req, res) => {
       res.json({ valid: true, role: decoded.role });
     });
   });
+  */
 
 // Suojattu reitti
 app.get('/protected', (req, res) => {
@@ -125,6 +135,19 @@ app.get('/forms', (req, res) => {
     console.log("Tallennettu lomake:", req.body);
     res.status(201).json({ message: 'Lomake vastaanotettu' });
   });
+
+app.post('/forms/save', (req, res) => {
+  const form = req.body;
+  
+  console.log("Vastaanotettu lomake:", form);
+  
+  //Tallennus  tietokantaan
+  //Simuloidaan vastaus
+  res.status(200).json({
+    message: "Lomake tallennettu",
+    savedForm: form
+  });
+});
 
   
 // Yleinen virheenkäsittely

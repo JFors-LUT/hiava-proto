@@ -5,7 +5,7 @@ import LogoutButton from "./components/LogoutButton";
 import Home from "./components/Home";
 import FieldBuilder from "./components/FormBuilder/FormBuilder";
 import FormFiller from "./components/FormFiller/FormFiller";
-import ConfirmSubmission from "./components/ConfirmSubmission";
+import ConfirmSubmission from "./components/FormFiller/ConfirmSubmission";
 
 // Käytetään Bootstrapin tyylejä
 function App() {

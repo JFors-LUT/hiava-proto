@@ -31,3 +31,22 @@ export const submitForm = async (formData) => {
 
   return await res.json();
 };
+
+export const saveForm = async (form) => {
+  const token = localStorage.getItem("authToken");
+
+  const res = await fetch(`${API_BASE}/forms/save`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(form),
+  });
+
+  if (!res.ok) {
+    throw new Error("Lomakkeen tallennus epäonnistui");
+  }
+
+  return await res.json(); // palautetaan esim. tallennettu lomake tai viesti
+};

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, Form } from "react-bootstrap";
-import { useNavigate, useLocation  } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorAlert, FormSelector, FormFields, SubmitButton } from './formFillerBuilders';
 import useRequireRole from "@/hooks/useRequireRole";
 import AccessDeniedMessage from "@/components/common/AccessDenied";
@@ -9,18 +9,17 @@ import { getForms } from "@/Services/formServices";
 export default function FormFiller() {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Tilan määrittely
+
   const [savedForms, setSavedForms] = useState([]);
   const [selectedForm, setSelectedForm] = useState(null);
   const [formName, setFormName] = useState(location.state?.formName || "");
-  const [formData, setFormData] = useState(location.state?.formData || {});
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem("formData");
+    return saved ? JSON.parse(saved) : location.state?.formData || {};
+  });
   const [error, setError] = useState(null);
 
-  // Käytetään useRequireRole hookkia hyväksyttyjen roolien tarkistamiseen
   const { loading, accessDenied } = useRequireRole(["customer", "expert"]);
-
-  // Käytetään localStoragea roolin hakemiseen
   const userRole = localStorage.getItem("userRole");
 
   useEffect(() => {
@@ -28,25 +27,36 @@ export default function FormFiller() {
       let forms = [];
 
       if (userRole === "expert") {
-        forms = ["Asiakaspalaute", "Kysely"];
+        forms = ["Asiakaspalaute", "Kysely", "Test form 3"];
       } else if (userRole === "customer") {
-        forms = ["Asiakaspalaute"];
+        forms = ["Asiakaspalaute", "Test form 3"];
       }
 
       setSavedForms(forms);
-      setFormName(forms[0] || "");  // Asetetaan ensimmäinen lomake valituksi, jos lomakkeita on
     }
-  }, [userRole]);  // Tämä efekti ajetaan aina, kun käyttäjän rooli muuttuu
+  }, [userRole]);
 
-  // Lomakkeen kentän muutos
+  useEffect(() => {
+    // Tallennetaan aktiivisen lomakkeen tiedot localStorageen
+    localStorage.setItem("formData", JSON.stringify(formData));
+  }, [formData]);
+
   const handleChange = (fieldName, value) => {
-    setFormData({ ...formData, [fieldName]: value });
+    setFormData(prev => ({
+      ...prev,
+      [formName]: {
+        ...(prev[formName] || {}),
+        [fieldName]: value
+      }
+    }));
   };
 
   const handleSubmit = () => {
-    // Tarkistetaan, että kaikki kentät on täytetty
+    const currentData = formData[formName] || {};
+
     const allFieldsFilled = selectedForm.fields.every((field) => {
-      return formData[field.label] !== undefined && formData[field.label] !== "";
+      const value = currentData[field.label];
+      return typeof value === "string" ? value.trim() !== "" : value !== undefined && value !== null && value !== "";
     });
 
     if (!allFieldsFilled) {
@@ -54,27 +64,35 @@ export default function FormFiller() {
       return;
     }
 
+    const trimmedData = {};
+    for (const key in currentData) {
+      const value = currentData[key];
+      trimmedData[key] = typeof value === "string" ? value.trim() : value;
+    }
+
     setError(null);
-    navigate("/confirm", { state: { formData, formName } });
+    navigate("/confirm", {
+      state: {
+        formData: { [formName]: trimmedData },
+        formName
+      }
+    });
   };
 
-  // Estetään pääsy, jos käyttäjä ei ole oikeutettu
-  if (loading) return <p>Ladataan...</p>;
-  if (accessDenied) return <AccessDeniedMessage />;
-
-  // Haetaan valittu lomake
   const handleFormSelect = async (e) => {
-    const formName = e.target.value;
-    //setFormName(formName);
+    const selected = e.target.value;
+    setFormName(selected);
 
     try {
-      // Lähetetään pyyntö serverille, jossa haetaan vain valittu lomake
-      const form = await getForms(formName);  // getForms on edellä määritelty funktio
+      const form = await getForms(selected);
       setSelectedForm(form);
     } catch (err) {
       setError("Lomakkeen haku epäonnistui");
     }
   };
+
+  if (loading) return <p>Ladataan...</p>;
+  if (accessDenied) return <AccessDeniedMessage />;
 
   return (
     <div className="container mt-5">
@@ -92,7 +110,11 @@ export default function FormFiller() {
 
           {selectedForm && (
             <Form onSubmit={(e) => e.preventDefault()}>
-              <FormFields fields={selectedForm.fields} formData={formData} onFieldChange={handleChange} />
+              <FormFields
+                fields={selectedForm.fields}
+                formData={formData[formName] || {}}
+                onFieldChange={handleChange}
+              />
               <SubmitButton onSubmit={handleSubmit} />
             </Form>
           )}
