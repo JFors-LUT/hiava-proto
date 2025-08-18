@@ -41,6 +41,7 @@ export default function ConfirmSubmission() {
       <Card className="mt-3">
         <Card.Body>
           <h3>{formName}</h3>
+          <i>Tarkista, että antamasi lomakkeen tiedot ovat oikein. Jos huomaat virheen, muokkaa tietoja painamalla "Takaisin" ja valitsemalla kyseinen lomake uudelleen.</i>
           <ul>
             {Object.entries(currentFormData).map(([key, value], index) => (
               <li key={index}>

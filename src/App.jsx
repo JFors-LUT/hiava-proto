@@ -41,8 +41,6 @@ function App() {
             </ul>
           </div>
         </nav>
-
-        {/* Sisältöä näkyy alle navigointipalkin */}
         <div className="container mt-5">
           
           <Routes>

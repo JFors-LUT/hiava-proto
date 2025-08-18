@@ -29,6 +29,7 @@ function useRequireRole(requiredRole) {
 
         // Tarkistetaan, onko käyttäjän rooli sallittu
         if (requiredRole && !requiredRole.includes(data.user.role)) {
+        //if (requiredRole && data.user.role !== requiredRole) {
           setAccessDenied(true);  // Jos rooli ei ole sallittu, estetään pääsy
         } else {
           setUser(data.user);  // Jos rooli on sallittu, asetetaan käyttäjän tiedot
@@ -41,7 +42,7 @@ function useRequireRole(requiredRole) {
     };
 
     verifyAccess();  // Suoritetaan funktio, joka tarkistaa oikeudet
-  }, [JSON.stringify(requiredRole)]);  // Hookin käynnistyminen vain roolin muuttumisen yhteydessä
+  }, [JSON.stringify(requiredRole)]);//[requiredRole]);  // Hookin käynnistyminen vain roolin muuttumisen yhteydessä
 
   return { loading, accessDenied, user };
 }

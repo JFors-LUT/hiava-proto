@@ -5,6 +5,7 @@ import useRequireRole from "@/hooks/useRequireRole";
 import { saveForm } from "@/Services/formServices";
 import { addField, removeField, editField } from "./formBuilderHelper";
 
+//Maksimi merkkien määrä kentille
 let maxLength = 64;
 
 export default function FieldBuilder() {
@@ -24,7 +25,26 @@ export default function FieldBuilder() {
   if (loading) return <p>Ladataan...</p>;
   if (accessDenied) return <AccessDeniedMessage />;
 
+  //lisää kenttä, button click ja enter painaminen
+  const handleAddField = () => {
+    const isDuplicate = fields.some((field) => field.name === fieldName.trim());
+    if (!fieldName.trim()) {
+      setErrorMessage("Kentän nimi ei voi olla tyhjä.");
+    } else if (isDuplicate) {
+      setErrorMessage("Kentän nimi on jo olemassa.");
+    } else {
+      setErrorMessage(""); // Tyhjennä aiemmat virheet
+      addField(fieldName.trim(), fieldType, setFields, fields, setFieldName, setFieldType, setErrorMessage);
+    }
+    setSuccessMessage("");
+  };
+
   const handleSave = async () => {
+    // Tarkistetaan, onko lomaketta olemassa
+  if(!formName){
+    setErrorMessage("Aseta lomakkeelle nimi.");
+    return []; // Palautetaan tyhjä taulukko, jotta lomaketta ei tallenneta
+  }
     // Estetään tyhjän lomakkeen tallennus
     if (!formName.trim()) {
       setErrorMessage("Lomakkeen nimi ei voi olla tyhjä.");
@@ -80,7 +100,13 @@ export default function FieldBuilder() {
             />
           </Form.Group>
 
-          <Form className="d-flex gap-3 flex-wrap">
+          <Form className="d-flex gap-3 flex-wrap"
+          onSubmit={(e) =>{ 
+            e.preventDefault() //estää Enter painamisesta aiheutuvan sivun päivityksen
+            handleAddField();
+          }}
+          >
+            
             <Form.Control
               type="text"
               placeholder="Kentän nimi"
@@ -97,16 +123,7 @@ export default function FieldBuilder() {
             </Form.Select>
             <Button
               onClick={() => {
-                const isDuplicate = fields.some((field) => field.name === fieldName.trim());
-                if (!fieldName.trim()) {
-                  setErrorMessage("Kentän nimi ei voi olla tyhjä.");
-                } else if (isDuplicate) {
-                  setErrorMessage("Kentän nimi on jo olemassa.");
-                } else {
-                  setErrorMessage(""); // Tyhjennä aiemmat virheet
-                  addField(fieldName.trim(), fieldType, setFields, fields, setFieldName, setFieldType, setErrorMessage);
-                }
-                setSuccessMessage("")
+                handleAddField();
               }}
             >
               Lisää kenttä
@@ -192,7 +209,9 @@ export default function FieldBuilder() {
               </Button>
             </>
           ) : (
-            <>
+            //piilotetaan muokkaa/poista näppäimet näkyvistä, jos kenttän tietoja aletaan muokkaamaan
+            editIndex === null && (
+              <>
               <Button
                 variant="warning"
                 size="sm"
@@ -206,16 +225,20 @@ export default function FieldBuilder() {
                 Muokkaa
               </Button>
               <div className="d-flex">
+                
               <Button
+              //nappi siirretty kauemmas oikealle virheiden välttämiseksi
                 className="position-absolute bottom-0 end-0 mb-2 me-2"
                 variant="danger"
                 size="sm"
                 onClick={() => removeField(index, setFields, fields)}
               >
+                 
                 Poista
               </Button>
               </div>
             </>
+            )
           )}
         </td>
       </tr>
@@ -228,3 +251,5 @@ export default function FieldBuilder() {
     </div>
   );
 }
+
+

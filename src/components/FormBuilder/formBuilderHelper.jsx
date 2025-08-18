@@ -1,3 +1,4 @@
+//kenttien maksimi pituus
 let maxLength = 64;
 
 export const addField = (fieldName, fieldType, setFields, fields, setFieldName, setFieldType, setErrorMessage) => {

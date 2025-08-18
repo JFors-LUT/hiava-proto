@@ -15,6 +15,7 @@ export default function FormFiller() {
   const [formName, setFormName] = useState(location.state?.formName || "");
   const [formData, setFormData] = useState(() => {
     const saved = localStorage.getItem("formData");
+    //formdata alustus localstoragesta, vaihtoehtoisesti navigation tilasta tai viimeisenä tyhjä objekti
     return saved ? JSON.parse(saved) : location.state?.formData || {};
   });
   const [error, setError] = useState(null);
@@ -25,7 +26,7 @@ export default function FormFiller() {
   useEffect(() => {
     if (userRole) {
       let forms = [];
-
+      //roolipohjainen lomakkeiden lista, expert kaikki, customer rajoitettu
       if (userRole === "expert") {
         forms = ["Asiakaspalaute", "Kysely", "Test form 3"];
       } else if (userRole === "customer") {
@@ -41,6 +42,7 @@ export default function FormFiller() {
     localStorage.setItem("formData", JSON.stringify(formData));
   }, [formData]);
 
+  //Päivitetään muokattavan lomakkeen tiedot, ...prev säilyttää edelliset tiedot
   const handleChange = (fieldName, value) => {
     setFormData(prev => ({
       ...prev,
@@ -53,7 +55,7 @@ export default function FormFiller() {
 
   const handleSubmit = () => {
     const currentData = formData[formName] || {};
-
+    //tarkistetaan, onko kentät täytetty trimmauksen jälkeen
     const allFieldsFilled = selectedForm.fields.every((field) => {
       const value = currentData[field.label];
       return typeof value === "string" ? value.trim() !== "" : value !== undefined && value !== null && value !== "";
@@ -64,6 +66,7 @@ export default function FormFiller() {
       return;
     }
 
+    //trimmaus, jos kentät sisältävät välilyönnit
     const trimmedData = {};
     for (const key in currentData) {
       const value = currentData[key];
