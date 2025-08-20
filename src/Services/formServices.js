@@ -50,3 +50,14 @@ export const saveForm = async (form) => {
 
   return await res.json(); // palautetaan esim. tallennettu lomake tai viesti
 };
+
+export const getAccessibleForms = async () => {
+  const token = localStorage.getItem('authToken');
+
+  const res = await fetch(`${API_BASE}/forms/user`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Käyttöoikeutettujen lomakkeiden haku epäonnistui');
+  const data = await res.json();
+  return data.forms; // string[]
+};

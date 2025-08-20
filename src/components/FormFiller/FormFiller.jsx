@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorAlert, FormSelector, FormFields, SubmitButton } from './formFillerBuilders';
 import useRequireRole from "@/hooks/useRequireRole";
 import AccessDeniedMessage from "@/components/common/AccessDenied";
-import { getForms } from "@/Services/formServices";
+import { getForms, getAccessibleForms } from "@/Services/formServices";
 
 export default function FormFiller() {
   const navigate = useNavigate();
@@ -24,18 +24,16 @@ export default function FormFiller() {
   const userRole = localStorage.getItem("userRole");
 
   useEffect(() => {
-    if (userRole) {
-      let forms = [];
-      //roolipohjainen lomakkeiden lista, expert kaikki, customer rajoitettu
-      if (userRole === "expert") {
-        forms = ["Asiakaspalaute", "Kysely", "Test form 3"];
-      } else if (userRole === "customer") {
-        forms = ["Asiakaspalaute", "Test form 3"];
+    (async () => {
+      try {
+        const forms = await getAccessibleForms();
+        setSavedForms(forms);
+      } catch (err) {
+        
+        setError(`Käyttöoikeutettujen lomakkeiden haku epäonnistui: ${err.message || err.toString()}`);
       }
-
-      setSavedForms(forms);
-    }
-  }, [userRole]);
+    })();
+  }, []);
 
   useEffect(() => {
     // Tallennetaan aktiivisen lomakkeen tiedot localStorageen
@@ -57,7 +55,8 @@ export default function FormFiller() {
     const currentData = formData[formName] || {};
     //tarkistetaan, onko kentät täytetty trimmauksen jälkeen
     const allFieldsFilled = selectedForm.fields.every((field) => {
-      const value = currentData[field.label];
+      const value = currentData[field.name];
+      // tarkistetaan, että kenttä on täytetty eikä tyhjä merkkijono tai undefined
       return typeof value === "string" ? value.trim() !== "" : value !== undefined && value !== null && value !== "";
     });
 
@@ -95,7 +94,8 @@ export default function FormFiller() {
   };
 
   if (loading) return <p>Ladataan...</p>;
-  if (accessDenied) return <AccessDeniedMessage />;
+  if (accessDenied) 
+    return <AccessDeniedMessage message={error}/>;
 
   return (
     <div className="container mt-5">

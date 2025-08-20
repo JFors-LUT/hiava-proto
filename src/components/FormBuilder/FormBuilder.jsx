@@ -19,7 +19,6 @@ export default function FieldBuilder() {
   const [editedFieldName, setEditedFieldName] = useState("");
   const [editedFieldType, setEditedFieldType] = useState("text");
 
-
   const { loading, accessDenied } = useRequireRole("expert");
 
   if (loading) return <p>Ladataan...</p>;
@@ -64,7 +63,7 @@ export default function FieldBuilder() {
       name: formName,
       fields: fields,
     };
-
+    setErrorMessage("");
     try {
       const response = await saveForm(formToSave);
       console.log("Tallennus onnistui:", response);
@@ -76,9 +75,10 @@ export default function FieldBuilder() {
       setFields([]);
       setFieldName("");
       setFieldType("text");
+      setSendingMessage("");
     } catch (error) {
       console.error("Tallennus epäonnistui:", error);
-      setErrorMessage("Tallennus epäonnistui. Tarkista kentät ja yritä uudelleen.");
+      setErrorMessage(`Tallennus epäonnistui: ${error.message || error.toString()}`);
     }
   };
 

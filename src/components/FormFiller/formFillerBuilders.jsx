@@ -31,22 +31,39 @@ export const FormFields = ({ fields, formData, onFieldChange }) => (
   <>
     {fields.map((field, index) => (
       <Form.Group className="mb-3" key={index}>
-        <Form.Label>{field.label}</Form.Label>
+        <Form.Label>{field.name}</Form.Label>
         {field.type === "boolean" ? (
-          <Form.Select
-            value={formData[field.label] !== undefined ? formData[field.label] : ""}
-            onChange={(e) => onFieldChange(field.label, e.target.value === "true")}
+          // muutetaan arvot boolean arvoon
+          <Form.Select  
+            value={formData[field.name] !== undefined ? formData[field.name] : ""}
+            onChange={(e) => onFieldChange(field.name, e.target.value === "true")}
           >
             <option value="" disabled>Valitse</option>
             <option value="true">Kyllä</option>
             <option value="false">Ei</option>
           </Form.Select>
         ) : (
-          <Form.Control
-            type={field.type}
-            value={formData[field.label] || ""}
-            onChange={(e) => onFieldChange(field.label, e.target.value)}
-          />
+          field.type === "number" ? (
+            // numero kentän arvo numeroksi, varmistetaan ettei muunnos epäonnistu
+            <Form.Control
+              type="number"
+              value={formData[field.name] ?? ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                //jos value on tyhjä, asetetaan num tyhjäksi, muuten muunnetaan numeroksi
+                const num = value === "" ? "" : Number(value);
+                // tarkistetaan, että num on kelvollinen numero, jos ei, asetetaan tyhjä
+                onFieldChange(field.name, value === "" ? "" : (Number.isNaN(num) ? "" : num));
+              }}
+            />
+          ) : (
+            // tekstimuotoiset kentät 
+            <Form.Control
+              type={field.type}
+              value={formData[field.name] || ""}
+              onChange={(e) => onFieldChange(field.name, e.target.value)}
+            />
+          )
         )}
       </Form.Group>
     ))}

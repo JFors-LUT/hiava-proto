@@ -10,17 +10,22 @@ export default function ConfirmSubmission() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isBackButtonVisible, setIsBackButtonVisible] = useState(true);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const response = await submitForm({ formName, formData }); // formData = { Asiakaspalaute: { ... } }
-      console.log(response);
       setIsSubmitted(true);
       setIsBackButtonVisible(false);
+      if (!response.ok) {
+        throw new Error("Lähetys epäonnistui. Yritä uudelleen.");
+      }
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      setError(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -59,12 +64,19 @@ export default function ConfirmSubmission() {
               Takaisin
             </Button>
           )}
-
           <div className="text-end">
             {!isSubmitted ? (
-              <Button onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting ? "Lähetetään..." : "Lähetä lomake"}
-              </Button>
+              <>
+                <Button onClick={handleSubmit} disabled={isSubmitting}>
+                  {isSubmitting ? "Lähetetään..." : "Lähetä lomake"}
+                </Button>
+
+                {error !== null && (
+                  <p style={{ color: "red", fontWeight: "bold", marginTop: "0.5rem" }}>
+                    {error.message}
+                  </p>
+                )}
+              </>
             ) : (
               <span style={{ color: "green", fontWeight: "bold" }}>
                 Lomake lähetetty
