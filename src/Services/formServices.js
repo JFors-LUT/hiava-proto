@@ -46,9 +46,24 @@ export const saveForm = async (form) => {
 
   if (!res.ok) {
     throw new Error("Lomakkeen tallennus epäonnistui");
-  }
+  };
 
   return await res.json(); // palautetaan esim. tallennettu lomake tai viesti
+};
+
+export const deleteForm = async (form) => {
+  console.log("Deketing")
+  const token = localStorage.getItem("authToken");
+
+  const res = fetch(`${API_BASE}/forms/${form}`, { 
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    }, 
+  });
+  if (!res.ok) throw new Error("Lomaketta ei löydetty.");
+  const data = await res.json();
 };
 
 export const getAccessibleForms = async () => {
@@ -61,3 +76,4 @@ export const getAccessibleForms = async () => {
   const data = await res.json();
   return data.forms; // string[]
 };
+

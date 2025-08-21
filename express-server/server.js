@@ -190,6 +190,34 @@ app.post('/forms/save', (req, res) => {
   });
 });
 
+app.delete('/forms/:formName', (req, res) => {
+  console.log("Expert logged in");
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(403).json({ error: 'No token provided' });
+
+  jwt.verify(token, secretKey, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Token is invalid or expired' });
+
+    // vain expert voi  poistaa, periaatteessa customer ei pitäisi päästä tähän, mutta varmuuden vuoksi
+    if (user.role !== 'expert') {
+      return res.status(403).json({ error: 'Käyttöoikeus evätty' });
+    }
+
+    const { formName } = req.params;
+    const index = mockForms.findIndex(f => f.name === formName);
+
+    if (index === -1) {
+      return res.status(404).json({ error: `Lomaketta "${formName}" ei löytynyt` });
+    }
+
+    // poistetaan lomake
+    const deletedForm = mockForms.splice(index, 1)[0];
+    console.log(`Lomake poistettu:`, deletedForm);
+
+    return res.json({ message: `Lomake "${formName}" poistettu onnistuneesti` });
+  });
+});
+
   
 // Yleinen virheenkäsittely
 app.use((err, req, res, next) => {

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Form, Button, Card, Table, Alert } from "react-bootstrap";
 import AccessDeniedMessage from "@/components/common/AccessDenied";
 import useRequireRole from "@/hooks/useRequireRole";
-import { saveForm } from "@/Services/formServices";
+import { saveForm, deleteForm } from "@/Services/formServices";
 import { addField, removeField, editField } from "./formBuilderHelper";
 
 //Maksimi merkkien määrä kentille
@@ -75,10 +75,42 @@ export default function FieldBuilder() {
       setFields([]);
       setFieldName("");
       setFieldType("text");
-      setSendingMessage("");
     } catch (error) {
       console.error("Tallennus epäonnistui:", error);
       setErrorMessage(`Tallennus epäonnistui: ${error.message || error.toString()}`);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!formName) {
+      setErrorMessage("Kirjoita poistettavan lomakkeen nimi.");
+      return;
+    }
+  
+    const userInput = window.prompt(
+      `Vahvista poistettava lomake kirjoittamalla lomakkeen nimi: "${formName}"`
+    );
+
+    //käyttäjä painoi 'Peru'
+    if (userInput === null) {
+      setErrorMessage("");
+      return;
+    }
+  
+    if (userInput !== formName) {
+      setErrorMessage("Poisto peruutettu. Nimi ei täsmännyt.");
+      return;
+    }
+    
+    try {
+      const response = await deleteForm(formName)
+
+      setSuccessMessage(data.message);
+      setErrorMessage("");
+      setFormName("");
+      setFields([]);
+    } catch (err) {
+      setErrorMessage(`Poisto epäonnistui: ${err.message}`);
     }
   };
 
@@ -127,6 +159,14 @@ export default function FieldBuilder() {
               }}
             >
               Lisää kenttä
+            </Button>
+
+            <Button
+              className="position-absolute bottom-0 end-0 mb-2 me-2"
+              variant="danger"
+              onClick={handleDelete}
+            >
+              Poista lomake
             </Button>
 
           </Form>
