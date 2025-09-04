@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL; //Ympäristömuuttuja serverin osoitteeksi
+const API_BASE = import.meta.env.VITE_API_BASE_URL; //Vite ympäristömuuttuja serverin osoitteeksi
 
 function useRequireRole(requiredRole) {
   const [loading, setLoading] = useState(true);
@@ -35,7 +35,7 @@ function useRequireRole(requiredRole) {
           setUser(data.user);  // Jos rooli on sallittu, asetetaan käyttäjän tiedot
         }
       } catch (err) {
-        setAccessDenied(true);  // Jos palvelimella on virhe, estetään pääsy
+        setAccessDenied(true);  // Virhe, estetään pääsy
       } finally {
         setLoading(false);  // Ladataan valmis
       }

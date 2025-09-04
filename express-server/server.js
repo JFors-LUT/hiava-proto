@@ -24,31 +24,27 @@ const users = [
   // Simuloitu tietokanta tai mock-tiedot
 const mockForms = [
   {
-    id: 1,
     name: "Asiakaspalaute",
     fields: [
-      { name: "Nimi", type: "string" },
-      { name: "Palaute", type: "string" },
+      { name: "Nimi", type: "string", mandatory: true },
+      { name: "Palaute", type: "string", mandatory: true },
       { name: "Saako", type: "boolean" }
-
     ]
   },
   {
-    id: 2,
     name: "Kysely",
     fields: [
-      { name: "Nimi", type: "string" },
-      { name: "Tunnit", type: "number"},
+      { name: "Nimi", type: "string", mandatory: true },
+      { name: "Tunnit", type: "number", min: 5, max: 14, mandatory: true},
       { name: "Testaaja", type: "boolean"}
     ]
   },
   {
-    id: 3,
     name: "Test form 3",
     fields: [
-      { name: "ID", type: "number" },
+      { name: "ID", type: "number", min: -5, max: 0, mandatory: true },
       { name: "Text", type: "string" },
-      { name: "Test", type: "boolean" }
+      { name: "Test", type: "boolean", mandatory: true }
     ]
   }
 ];
@@ -56,7 +52,7 @@ const mockForms = [
 
 
 ////REITIT //////////
-// Kirjautumisreitti (esimerkki)
+// Kirjautumisreitti 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     const user = users.find(u => u.username === username && u.password === password);
@@ -72,28 +68,6 @@ app.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
   });
-/*
-  app.get('/me', authenticateToken, (req, res) => {
-    res.json({ username: req.user.username, role: req.user.role });
-  });
-
-  app.post('/verify-token', (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1]; // Haetaan token "Bearer <token>"
-    if (!token) {
-      return res.status(401).json({ valid: false });
-    }
-  
-    jwt.verify(token, secretKey, (err, decoded) => {
-      if (err) {
-        return res.status(401).json({ valid: false });
-      }
-  
-      // Palautetaan rooli ja tieto siitä, että token on validi
-      res.json({ valid: true, role: decoded.role });
-    });
-  });
-  */
-
 
 
 // Suojattu reitti

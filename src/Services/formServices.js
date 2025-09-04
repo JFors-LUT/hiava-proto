@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL;  // Käytämme Viteä
+const API_BASE = import.meta.env.VITE_API_BASE_URL;  //Vite ympäristömuuttuja serverin osoitteeksi
 
 export const getForms = async (formName) => {
   const token = localStorage.getItem("authToken");
@@ -52,10 +52,9 @@ export const saveForm = async (form) => {
 };
 
 export const deleteForm = async (form) => {
-  console.log("Deketing")
   const token = localStorage.getItem("authToken");
 
-  const res = fetch(`${API_BASE}/forms/${form}`, { 
+  const res = await fetch(`${API_BASE}/forms/${form}`, { 
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -63,7 +62,7 @@ export const deleteForm = async (form) => {
     }, 
   });
   if (!res.ok) throw new Error("Lomaketta ei löydetty.");
-  const data = await res.json();
+  return res;
 };
 
 export const getAccessibleForms = async () => {

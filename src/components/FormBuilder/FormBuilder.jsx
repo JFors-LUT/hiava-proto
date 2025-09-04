@@ -12,12 +12,18 @@ export default function FieldBuilder() {
   const [formName, setFormName] = useState("");
   const [fieldName, setFieldName] = useState("");
   const [fieldType, setFieldType] = useState("text");
+  const [minValue, setMinValue] = useState("");
+  const [maxValue, setMaxValue] = useState("");
+  const [isMandatory, setIsMandatory] = useState(false);
   const [fields, setFields] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [editIndex, setEditIndex] = useState(null);
   const [editedFieldName, setEditedFieldName] = useState("");
   const [editedFieldType, setEditedFieldType] = useState("text");
+  const [editedMinValue, setEditedMinValue] = useState("");
+  const [editedMaxValue, setEditedMaxValue] = useState("");
+  const [editedIsMandatory, setEditedIsMandatory] = useState(false);
 
   const { loading, accessDenied } = useRequireRole("expert");
 
@@ -33,7 +39,7 @@ export default function FieldBuilder() {
       setErrorMessage("Kentän nimi on jo olemassa.");
     } else {
       setErrorMessage(""); // Tyhjennä aiemmat virheet
-      addField(fieldName.trim(), fieldType, setFields, fields, setFieldName, setFieldType, setErrorMessage);
+      addField(fieldName.trim(), fieldType, minValue, maxValue, isMandatory, setFields, fields, setFieldName, setFieldType, setMinValue, setMaxValue, setIsMandatory, setErrorMessage);
     }
     setSuccessMessage("");
   };
@@ -75,6 +81,9 @@ export default function FieldBuilder() {
       setFields([]);
       setFieldName("");
       setFieldType("text");
+      setMinValue("");
+      setMaxValue("");
+      setIsMandatory(false);
     } catch (error) {
       console.error("Tallennus epäonnistui:", error);
       setErrorMessage(`Tallennus epäonnistui: ${error.message || error.toString()}`);
@@ -104,11 +113,13 @@ export default function FieldBuilder() {
     
     try {
       const response = await deleteForm(formName)
-
-      setSuccessMessage(data.message);
+      setSuccessMessage(`${response.status}: lomake poistettu.`);
       setErrorMessage("");
       setFormName("");
       setFields([]);
+      setMinValue("");
+      setMaxValue("");
+      setIsMandatory(false);
     } catch (err) {
       setErrorMessage(`Poisto epäonnistui: ${err.message}`);
     }
@@ -153,6 +164,31 @@ export default function FieldBuilder() {
               <option value="number">Numero</option>
               <option value="boolean">Totuusarvo</option>
             </Form.Select>
+            
+            {fieldType === "number" && (
+              <>
+                <Form.Control
+                  type="number"
+                  placeholder="Min arvo"
+                  value={minValue}
+                  onChange={(e) => setMinValue(e.target.value)}
+                />
+                <Form.Control
+                  type="number"
+                  placeholder="Max arvo"
+                  value={maxValue}
+                  onChange={(e) => setMaxValue(e.target.value)}
+                />
+              </>
+            )}
+            
+            <Form.Check
+              type="checkbox"
+              label="Pakollinen kenttä"
+              checked={isMandatory}
+              onChange={(e) => setIsMandatory(e.target.checked)}
+            />
+            
             <Button
               onClick={() => {
                 handleAddField();
@@ -188,6 +224,8 @@ export default function FieldBuilder() {
     <tr>
       <th>Nimi</th>
       <th>Tyyppi</th>
+      <th>Min/Max</th>
+      <th>Pakollinen</th>
       <th>Toiminnot</th>
     </tr>
   </thead>
@@ -211,12 +249,61 @@ export default function FieldBuilder() {
               value={editedFieldType}
               onChange={(e) => setEditedFieldType(e.target.value)}
             >
-              <option value="text">Teksti</option>
+              <option value="string">Teksti</option>
               <option value="number">Numero</option>
               <option value="boolean">Totuusarvo</option>
             </Form.Select>
           ) : (
             field.type
+          )}
+        </td>
+        <td>
+          {editIndex === index ? (
+            editedFieldType === "number" ? (
+              <div className="d-flex gap-2">
+                <Form.Control
+                  type="number"
+                  placeholder="Min"
+                  value={editedMinValue}
+                  onChange={(e) => setEditedMinValue(e.target.value)}
+                  size="sm"
+                />
+                <Form.Control
+                  type="number"
+                  placeholder="Max"
+                  value={editedMaxValue}
+                  onChange={(e) => setEditedMaxValue(e.target.value)}
+                  size="sm"
+                />
+              </div>
+            ) : (
+              <span className="text-muted">-</span>
+            )
+          ) : (
+            field.type === "number" && field.min !== undefined && field.max !== undefined ? (
+              `${field.min} - ${field.max}`
+            ) : (
+              field.type === "number" ? (
+                <span className="text-muted">Ei rajoja</span>
+              ) : (
+                <span className="text-muted">-</span>
+              )
+            )
+          )}
+        </td>
+        <td>
+          {editIndex === index ? (
+            <Form.Check
+              type="checkbox"
+              checked={editedIsMandatory}
+              onChange={(e) => setEditedIsMandatory(e.target.checked)}
+            />
+          ) : (
+            field.mandatory ? (
+              <span className="text-success">✓</span>
+            ) : (
+              <span className="text-muted">-</span>
+            )
           )}
         </td>
         <td className="position-relative">
@@ -231,6 +318,9 @@ export default function FieldBuilder() {
                     index,
                     editedFieldName,
                     editedFieldType,
+                    editedMinValue,
+                    editedMaxValue,
+                    editedIsMandatory,
                     fields,
                     setFields,
                     setErrorMessage,
@@ -259,6 +349,9 @@ export default function FieldBuilder() {
                 onClick={() => {
                   setEditedFieldName(field.name);
                   setEditedFieldType(field.type);
+                  setEditedMinValue(field.min || "");
+                  setEditedMaxValue(field.max || "");
+                  setEditedIsMandatory(field.mandatory || false);
                   setEditIndex(index);
                 }}
               >

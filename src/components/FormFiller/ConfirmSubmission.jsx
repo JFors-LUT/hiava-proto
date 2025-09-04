@@ -20,7 +20,6 @@ export default function ConfirmSubmission() {
       const response = await submitForm({ formName, formData }); // formData = { Asiakaspalaute: { ... } }
       setIsSubmitted(true);
       setIsBackButtonVisible(false);
-      console.log(response.status)
       if (!response) {
         throw new Error("Lähetys epäonnistui. Yritä uudelleen.");
       }

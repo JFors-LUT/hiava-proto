@@ -53,16 +53,35 @@ export default function FormFiller() {
 
   const handleSubmit = () => {
     const currentData = formData[formName] || {};
-    //tarkistetaan, onko kentät täytetty trimmauksen jälkeen
-    const allFieldsFilled = selectedForm.fields.every((field) => {
+    
+    // Tarkistetaan, onko pakolliset kentät täytetty ja ovatko numeroarvojen rajat oikein
+    for (const field of selectedForm.fields) {
       const value = currentData[field.name];
-      // tarkistetaan, että kenttä on täytetty eikä tyhjä merkkijono tai undefined
-      return typeof value === "string" ? value.trim() !== "" : value !== undefined && value !== null && value !== "";
-    });
-
-    if (!allFieldsFilled) {
-      setError("Kaikki kentät täytyy täyttää ennen lomakkeen lähettämistä.");
-      return;
+      
+      // Tarkistetaan, että pakollinen kenttä on täytetty
+      if (field.mandatory) {
+        const isFilled = typeof value === "string" ? value.trim() !== "" : value !== undefined && value !== null && value !== "";
+        
+        if (!isFilled) {
+          setError(`Pakollinen kenttä "${field.name}" täytyy täyttää ennen lomakkeen lähettämistä.`);
+          return;
+        }
+      }
+      
+      // Tarkistetaan numeroarvojen rajat
+      if (field.type === "number" && (field.min !== undefined || field.max !== undefined)) {
+        const numValue = Number(value);
+        
+        if (field.min !== undefined && numValue < field.min) {
+          setError(`Kentän "${field.name}" arvon tulee olla vähintään ${field.min}.`);
+          return;
+        }
+        
+        if (field.max !== undefined && numValue > field.max) {
+          setError(`Kentän "${field.name}" arvon tulee olla enintään ${field.max}.`);
+          return;
+        }
+      }
     }
 
     //trimmaus, jos kentät sisältävät välilyönnit

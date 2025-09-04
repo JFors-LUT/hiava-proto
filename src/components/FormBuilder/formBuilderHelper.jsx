@@ -1,7 +1,7 @@
 //kenttien maksimi pituus
 let maxLength = 64;
 
-export const addField = (fieldName, fieldType, setFields, fields, setFieldName, setFieldType, setErrorMessage) => {
+export const addField = (fieldName, fieldType, minValue, maxValue, isMandatory, setFields, fields, setFieldName, setFieldType, setMinValue, setMaxValue, setIsMandatory, setErrorMessage) => {
   // Tarkistetaan, että kentän nimi on alle 64 merkkiä
   if (fieldName.length > maxLength) {
     setErrorMessage(`Kentän nimi ei voi olla yli ${maxLength} merkkiä pitkä.`);
@@ -14,13 +14,35 @@ export const addField = (fieldName, fieldType, setFields, fields, setFieldName, 
     return;
   }
 
+  // Tarkistetaan numeroarvojen validiteetti
+  if (fieldType === "number") {
+    const min = minValue !== "" ? Number(minValue) : undefined;
+    const max = maxValue !== "" ? Number(maxValue) : undefined;
+    
+    if (min !== undefined && max !== undefined && min > max) {
+      setErrorMessage("Minimi arvo ei voi olla suurempi kuin maksimi arvo.");
+      return;
+    }
+  }
+
   // Lisää kenttä
-  const newField = { name: fieldName, type: fieldType };
+  const newField = { 
+    name: fieldName, 
+    type: fieldType,
+    mandatory: isMandatory,
+    ...(fieldType === "number" && {
+      min: minValue !== "" ? Number(minValue) : undefined,
+      max: maxValue !== "" ? Number(maxValue) : undefined
+    })
+  };
   setFields([...fields, newField]);
 
-  // Tyhjennetään kenttä nimi ja tyyppi
+  // Tyhjennetään kenttä nimi, tyyppi ja arvot
   setFieldName('');
   setFieldType('text');
+  setMinValue('');
+  setMaxValue('');
+  setIsMandatory(false);
 };
 
 
@@ -28,7 +50,7 @@ export const removeField = (index, setFields, fields) => {
     setFields(fields.filter((_, i) => i !== index));
   };
 
-  export const editField = (index, newName, newType, fields, setFields, setErrorMessage, setEditIndex) => {
+  export const editField = (index, newName, newType, minValue, maxValue, isMandatory, fields, setFields, setErrorMessage, setEditIndex) => {
     const trimmedName = newName.trim();
   
     if (!trimmedName) {
@@ -46,11 +68,27 @@ export const removeField = (index, setFields, fields) => {
       setErrorMessage(`Kentän nimi ei voi olla yli ${maxLength} merkkiä pitkä.`);
       return;
     }
+
+    // Tarkistetaan numeroarvojen validiteetti
+    if (newType === "number") {
+      const min = minValue !== "" ? Number(minValue) : undefined;
+      const max = maxValue !== "" ? Number(maxValue) : undefined;
+      
+      if (min !== undefined && max !== undefined && min > max) {
+        setErrorMessage("Minimi arvo ei voi olla suurempi kuin maksimi arvo.");
+        return;
+      }
+    }
   
     const updatedFields = [...fields];
     updatedFields[index] = {
       name: trimmedName,
       type: newType,
+      mandatory: isMandatory,
+      ...(newType === "number" && {
+        min: minValue !== "" ? Number(minValue) : undefined,
+        max: maxValue !== "" ? Number(maxValue) : undefined
+      })
     };
   
     setFields(updatedFields);
